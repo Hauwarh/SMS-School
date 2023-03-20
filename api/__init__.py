@@ -9,8 +9,7 @@ from .config.config import config_dict
 from .utils import db
 from .models.courses import Course
 from .models.users import User
-from .models.student import Student
-from .models.studentcourse import StudentCourse
+from .models.student import Student, student_course
 from .models.grade import Grade
 from werkzeug.exceptions import NotFound, MethodNotAllowed
 
@@ -24,7 +23,7 @@ def create_app(config=config_dict['dev']):
 
     jwt = JWTManager(app)
 
-    migrate = Migrate(app, db)
+    migrate = Migrate(app, db, render_as_batch=True)
 
 
 
@@ -69,8 +68,8 @@ def create_app(config=config_dict['dev']):
             'User': User,
             'Course': Course,
             'Student': Student,
-            'StudentCourse' : StudentCourse,
-            'Grade': Grade
+            'Grade': Grade,
+            'student_course': student_course
         }
 
     return app

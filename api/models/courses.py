@@ -6,7 +6,7 @@ class Course(db.Model):
     course_name = db.Column(db.String(50), nullable=False)
     Tutor = db.Column(db.String(), nullable=False)
     credit_hours = db.Column(db.Integer, default=1)
-    student_id = db.Column(db.Integer(), db.ForeignKey('students.studentId'))
+    student_id = db.Column(db.Integer(), db.ForeignKey('students.id'))
 
 
     def __repr__(self):

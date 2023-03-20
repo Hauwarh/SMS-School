@@ -3,8 +3,8 @@ from ..utils import db
 class Grade(db.Model):
     __tablename__= "grades"
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.studentId'), nullable=False)
-    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id'))
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'))
     score = db.Column(db.Float , nullable=False)
     grade = db.Column(db.String(10) , nullable=True )
 
