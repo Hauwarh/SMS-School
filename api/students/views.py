@@ -4,8 +4,8 @@ from ..models.users import User, UserType
 from ..models.student import Student
 from http import HTTPStatus
 from ..utils import db
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
+from werkzeug.security import generate_password_hash
+from flask_jwt_extended import  get_jwt_identity, jwt_required
 from http import HTTPStatus
 from easy_password_generator import PassGen
 from werkzeug.exceptions import Unauthorized, Conflict
@@ -17,7 +17,7 @@ student_namespace = Namespace('student', description='Namespace for student')
 passwordGenerator = PassGen()
 
 student_signup_request = student_namespace.model(
-    "student_Signup", {
+    "student_signup", {
         'first_name': fields.String(required=True, description="A users firstname"),
         'last_name': fields.String(required=True, description="A users lastname"),
         'email': fields.String(required=True, description="An email"),
@@ -37,6 +37,14 @@ student_model = student_namespace.model(
     }
 )
 
+course_model = student_namespace.model(
+    'Course', {
+        'id': fields.Integer(description="Course's ID"),
+        'course_name': fields.String(description="Course's Name", required=True),
+        'Tutor': fields.String(description="Course's Teacher", required=True),
+        'credit_hours': fields.Integer(description="Course credit hour", required=True),
+    }
+)
 
 student_signup_response = student_namespace.model(
     "Student", {
@@ -136,8 +144,6 @@ class StudentRetriveUpdateDelete(Resource):
         print('loggedin_user:', loggedin_user)
 
         if loggedin_user.user_type is UserType.ADMIN:
-            
-            # raise Unauthorized("Unauthorized Request")
         
             student = Student.get_by_id(student_id)
 
@@ -186,14 +192,6 @@ class StudentRetriveUpdateDelete(Resource):
         update_student.last_name = data["last_name"]
         update_student.email = data["email"] 
 
-        # data = request.get_json()
-
-        # update_student.first_name= data.get('first_name')
-        # update_student.last_name= data.get('last_name')
-        # update_student.email = data.get('email')
-
-
-
         db.session.commit()
 
         return update_student, HTTPStatus.OK
@@ -224,4 +222,39 @@ class StudentRetriveUpdateDelete(Resource):
 
         return {"message" " Student deleted successfully"}, HTTPStatus.OK
 
-    
+
+@student_namespace.route('/<int:student_id>/courses')
+class GetAllCourseStudents(Resource):
+
+    @student_namespace.doc(
+        description = "Get All courses registerd by a student - Authorized only for admin",
+        params = {
+            'student_id': "The student's ID"
+        }
+    )
+    @jwt_required()
+    @student_namespace.marshal_with(course_model)
+    def get(self, student_id):
+        """
+            Get All courses registerd by a student - Authorized only for admin
+        """
+        current_user=get_jwt_identity()
+
+        user = User.query.filter_by(email=current_user).first()
+
+        if user.user_type not in [UserType.ADMIN]:
+            raise Unauthorized("Unauthorized Request")
+
+        student = Student.get_by_id(student_id)
+
+        if student is None:
+            return {'message': 'Student not found'}, HTTPStatus.NOT_FOUND
+
+        courses = student.course
+
+        if courses is None:
+            return {'message': 'Student not enrolled in any course'}, HTTPStatus.NOT_FOUND
+
+        return courses
+       
+

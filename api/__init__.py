@@ -23,7 +23,9 @@ def create_app(config=config_dict['dev']):
 
     jwt = JWTManager(app)
 
-    migrate = Migrate(app, db, render_as_batch=True)
+    migrate = Migrate(app, db)
+
+
 
 
 
